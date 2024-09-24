@@ -1,0 +1,55 @@
+#include "minishell.h"
+
+
+// < redirect input cmd < file
+// > redirect output file > cmd
+// fork used to create a process + pipe
+int	main(int ac, char **av)
+{
+
+
+	int	len = 0;
+	int pipe = 0;
+
+	while (len < ac - 1)
+	{
+		if (strcmp(av[len + 1], "|"))
+			pipe ++;
+		len ++;
+	}
+	printf ("len > %d\n",len);
+	printf ("pipe > %d\n",pipe);
+
+	pid_t *fork_t;
+
+	fork_t = malloc(sizeof(pid_t) * (pipe));
+	
+
+
+	/*char *str;
+	
+	str = NULL;
+	while(1)
+	{
+		if (str)
+		{
+			free(str);
+			str = NULL;
+		}
+		str = readline("input:");
+		add_history(str);
+
+	} */
+
+	pid_t fork_t;
+	fork_t = fork();
+	
+	if (fork_t < 0)
+		printf ("creation process erreur\n");
+	if (fork_t == 0)
+		printf("enfant proc\n");
+	else
+		printf("parent proc\n");
+
+	return (0);
+}

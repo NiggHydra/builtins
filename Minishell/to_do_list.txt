@@ -1,0 +1,74 @@
+readline -> input (char *)
+Lexer :
+input (char *) -> token (t_token *)
+    ex: echo text | cat -e
+        1- echo
+        2- text
+        3- |
+        4- cat
+        5- -e
+t_token:
+    char *value;
+    token_type type;
+    t_token *next;
+token_type:
+    WORD -> echo   "text text"  'text text'  a"text"b'text'
+2:24
+PIPE -> |
+REDIR ->    >     <      >>    HEREDOC
+HEREDOC ->     <<delimiter    <<-delimiter  <<-   delimiter
+                             <<   delimiter
+expander:
+WORD
+- deleted quote
+- expand env and $?
+$var  not quoted
+$var   " $var"   dfd$vardfd   'df'$var"df"
+var follows variable nomination
+parser:
+token (t_token *) -> ast(t_ast *)
+ast:
+    chained list
+    binary tree
+    array
+-> regroup token to command
+command:
+<<eof <<eof1 < file1 <file2 a=1 b=4  <<eof2 <
+ASSIGN ==   key=value  (assign valid)
+...REDIR ...HEREDOC ...ASSIGN cmd ...REDIR ...HEREDOC ...args
+if pipe then next
+
+------------------------------------------------------------------------------------------------
+
+executor:
+
+*handle heredoc
+- if heredoc is last redir_in
+    stocked in a tmp file
+- expand delimiter: just quote expansion no var expansion
+<<-  eof     :    eof
+<<    eof   :    eof
+<<   -eof :   -eof
+<< $HOME :  $HOME  no expand
+<< "$HOME" : $HOME
+<< af"$HOME"f : af$HOMEf
+- expand heredoc input if no quote in delimiter
+    don`t expand quote
+
+
+*execution
+- redir: follows order
+< 1 > 2 cmd < 3 >4
+- builtin in parent process
+- pipe in a child process
+- cmd other than builtin in a child process
+- all child must run at the same time
+subshell?
+bonus:
+|| and && check exit_status
+in parent process
+signal:
+ctrl + c: handle parent
+            child signal(SIGKILL, SIG_DFL)
+ctrl + d: give the prompt an eof
+ctrl + /: nothing
