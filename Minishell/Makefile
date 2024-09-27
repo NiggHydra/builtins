@@ -6,7 +6,7 @@ MN		=	main.c\
 SRCS = ${MN}
 
 CC		=	cc
-CFLAGS		=	-Wall -Wextra -Werror -g
+CFLAGS		=	-Wall -Wextra -Werror -g 
 LDFLAGS = -lreadline
 
 NAME		=	minishell

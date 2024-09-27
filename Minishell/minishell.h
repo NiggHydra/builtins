@@ -41,6 +41,8 @@ char 	**realloc_tab(char **str, char *s, int concat);
 char  *assign_val(char *s);
 int	strlen_nvar (char *s);
 int nt_valid_identifier(char *s);
+int	free_tab(char **s);
+
 
 
 

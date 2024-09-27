@@ -136,33 +136,38 @@ int	ft_export(t_list *data, char **s)
 	int i;
 	int j;
 	int	equal;
-
+	int k = 0;
 	
 	j = 0;
 	i = 1;
 	if (s[i] == NULL)
 	{
-		while (data->exprt[i] != NULL)
+		while (data->exprt[k] != NULL)
 		{
 			j = 0;
 			equal = 0;
 			ft_putstr_fd("declare -x ", 1);
-			while (data->exprt[i][j] != '\0')
+			while (data->exprt[k][j] != '\0')
 			{
-				if (data->exprt[i][j] == '=' )
+				if (data->exprt[k][j] == '=' )
 				{
 					equal = 1;
-					ft_putchar_fd(data->exprt[i][j], 1);
+					ft_putchar_fd(data->exprt[k][j], 1);
 					ft_putchar_fd('"', 1);
 				}
+				else if (data->exprt[k][j] == '"' )
+				{
+					ft_putchar_fd('\\', 1);
+					ft_putchar_fd(data->exprt[k][j], 1);
+				}
 				else
-					ft_putchar_fd(data->exprt[i][j], 1);
+					ft_putchar_fd(data->exprt[k][j], 1);
 				j++;
 			}
 			if (equal == 1)
 				ft_putchar_fd('"', 1);
 			ft_putchar_fd('\n', 1);
-			i ++;
+			k ++;
 		}
 	}
 	else
@@ -176,27 +181,44 @@ int	ft_export(t_list *data, char **s)
 	return (0);
 }
 
-int delete_env(t_list *data, char *s)
+char **delete_env(t_list *data, char *s)
 {
-	int i;
-	//char **copy;
-	i = 0;
+	char **cpy;
 	char *pth1;
-	printf ("here we go %s\n", s);
-	while (data->exprt[i] != NULL)
+	int len;
+
+	int j;
+	len = 0;
+	j = 0;
+	while (data->exprt[j] != NULL)
 	{
-		pth1 = NULL;
-		printf ("strlen name var >>> %d\n",strlen_nvar(data->exprt[i]));
-		pth1 = strncpy(pth1, data->exprt[i], strlen_nvar(data->exprt[i]));
-		//printf ("cmp >>> %s | %s = %d\n",pth1, s, strcmp(pth1, s));
-		printf ("%s\n", pth1);
-		//if (strcmp(pth1, s) == 0)
-		//if ()
-		free (pth1);
-		i ++;
+		pth1 = ft_substr(data->exprt[j], 0, strlen_nvar(data->exprt[j]));
+		if (strcmp(pth1, s) == 0)
+			len -= 1;
+		if (pth1 != NULL)
+			free (pth1);
+		len ++;
+		j ++;
 	}
-	
-	return (0);
+	cpy = malloc (sizeof (char *) * (len + 1));
+	len = -1;
+	j = 0;
+	while (data->exprt[j] != NULL)
+	{
+		pth1 = ft_substr(data->exprt[j], 0, strlen_nvar(data->exprt[j]));
+		if (strcmp(pth1, s) == 0)
+			j ++;
+		else
+		{
+			cpy [++len] = ft_strdup (data->exprt[j]);
+			j ++;
+		}
+		if (pth1 != NULL)
+			free (pth1);
+	}
+	cpy[len] = NULL; 
+	free_tab(data->exprt);
+	return (cpy);
 }
 
 int	ft_unset(t_list *data, char **s)
@@ -207,13 +229,11 @@ int	ft_unset(t_list *data, char **s)
 	if (s[i] == NULL)
 		return (0);
 	else
-	{
 		while (s[i] != NULL)
 		{
-			delete_env(data, s[i]);
-			i++;
+			data->exprt = delete_env(data, s[i]);
+			i ++;
 		}
-	}
 	return (0);
 }
 int	cmd_excve(char  **s, t_list *data)
@@ -233,7 +253,6 @@ int	cmd_excve(char  **s, t_list *data)
 			ft_putstr_fd(s[0], 1);
 			ft_putstr_fd(": Command not found\n", 1);
 		}
-			
 	}
 	else
 		wait(&fork_t);
@@ -242,19 +261,20 @@ int	cmd_excve(char  **s, t_list *data)
 int	search_path(t_list *data)
 {
 	char *pth;
-	int i = 0;
+	int i;
+
+	i = 0;
+	pth = NULL;
 	while (data->envrnmt[i] != NULL)
 	{
-		if (ft_strncmp("PATH",data->envrnmt[i], 4) == 0)
-			pth = ft_strdup (data->envrnmt[i]);
+		if (ft_strncmp("PATH=",data->envrnmt[i], 5) == 0)
+		{
+			pth = ft_strcmp2("PATH=",data->envrnmt[i]);
+			data->all_path = ft_split(pth, ':');
+			free(pth);
+			return (1);
+		}
 		i ++;
-	}
-	if (!pth)
-		return (1);
-	else
-	{
-		pth = ft_strcmp2("PATH=",pth);
-		data->all_path = ft_split(pth, ':');
 	}
 	return (0);
 }
@@ -267,15 +287,24 @@ int test_path(t_list *data, char *s)
 	char *pths;
 	while (data->all_path[i] != NULL)
 	{
-		pths = ft_strjoin("/", s);
-		pths = ft_strjoin( data->all_path[i], pths);
-		if (access(pths, F_OK | X_OK) == 0)
+		if (access(s, X_OK) == 0)
 		{
-			data->path = ft_strdup (pths);
-			free(pths);
+			data->path = ft_strdup (s);
 			return (0);
 		}
-		free(pths);
+		else
+		{
+			pths = ft_strjoin("/", s);
+			pths = ft_strjoin( data->all_path[i], pths);
+			if (access(pths, X_OK) == 0)
+			{
+				data->path = ft_strdup (pths);
+				free(pths);
+				return (0);
+			}
+		}
+		if (!pths)
+			free(pths);
 		i ++;
 	}
 	return (1);
