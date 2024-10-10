@@ -1,11 +1,12 @@
 #ifndef MINISHELL_H
 #define MINISHELL_H
+//#define _POSIX_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "libft/libft.h"
-#include "get_next_line.h"
 #include <sys/wait.h>
+#include <signal.h>
 #include <unistd.h>
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -42,6 +43,27 @@ char  *assign_val(char *s);
 int	strlen_nvar (char *s);
 int nt_valid_identifier(char *s);
 int	free_tab(char **s);
+void	ft_swap_chr(char **a, char **b);
+char 	*get_env(char *s, t_list *data);
+void	handle_signal(int	sig);
+void my_signal(void);
+int	check_pipe(char **s);
+int	cmd(char **str, t_list *data);
+int	ft_echo(char **s);
+int	ft_env(t_list *data);
+int ft_pwd(void);
+int	update_pwd(char *old_pwd, t_list *data);
+int	ft_cd(char **s, t_list *data);
+int	add_export(t_list *data, char *s);
+int	ft_export(t_list *data, char **s);
+char **delete_env(t_list *data, char *s);
+int	ft_unset(t_list *data, char **s);
+int	cmd_excve(char  **s, t_list *data);
+int	search_path(t_list *data);
+int test_path(t_list *data, char *s);
+
+
+
 
 
 

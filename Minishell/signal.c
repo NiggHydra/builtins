@@ -1,19 +1,39 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   builtin.c                                          :+:      :+:    :+:   */
+/*   signal.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lrasamoe <lrasamoe@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/09/13 14:25:07 by lrasamoe          #+#    #+#             */
-/*   Updated: 2024/09/13 14:25:52 by lrasamoe         ###   ########.fr       */
+/*   Created: 2024/10/09 15:08:25 by lrasamoe          #+#    #+#             */
+/*   Updated: 2024/10/10 11:28:58 by lrasamoe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-int	cmd_echo(char *str)
+void	handle_signal(int	sig)
 {
+	if (sig == SIGINT)
+	{
+		ft_putstr_fd ("\n", 1);
+		rl_on_new_line();
+		rl_replace_line("",0);
+		rl_redisplay ();
+		//rl_on_new_line();
+		//rl_on_new_line();
+	}
+	return ;
+}
+
+
+
+void my_signal(void)
+{
+	struct sigaction	sa;
 	
-	return (0);
+	sa.sa_handler = SIG_IGN;
+	signal( SIGINT ,handle_signal);
+	sigaction(SIGQUIT, &sa, NULL);
+	return ;
 }

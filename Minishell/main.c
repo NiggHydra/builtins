@@ -74,16 +74,36 @@ int ft_pwd(void)
 	printf("%s\n",pwd);
 	return (0);
 }
+
+int	update_pwd(char *old_pwd, t_list *data)
+{
+	int	i;
+	char pwd[1000];
+	char *current_pwd = ft_strdup(getcwd(pwd, sizeof(pwd)));
+
+	i = 0;
+	while (data->exprt[i] != NULL)
+	{
+		if (ft_strncmp("OLDPWD=" ,data->exprt[i], 7) == 0)
+			data->exprt[i] =  ft_strjoin("OLDPWD=", old_pwd);
+		else if (ft_strncmp("PWD=" ,data->exprt[i], 4) == 0)
+			data->exprt[i] =  ft_strjoin("PWD=",ft_strdup(current_pwd));
+		i ++;
+	}
+	return (0);
+}
+
 int	ft_cd(char **s, t_list *data)
 {
 	int i;
+	char pwd[1000];
+	char *current_pwd = ft_strdup(getcwd(pwd, sizeof(pwd)));
 	
 	i = 1;
 	if (s[i] == NULL)
 	{
 		chdir (getenv("HOME"));
 		data->directory = ft_strdup("~$ ");
-		return (0);
 	}
 	else 
 	{
@@ -92,11 +112,15 @@ int	ft_cd(char **s, t_list *data)
 				&& chdir (getenv("HOME")) == 0)
 			data->directory  = ft_strdup("~$ ");
 		else if (chdir (s[i]) == -1)
+		{
 			printf("bash: cd: %s: No such file or directory\n",s[i]);
+			return (1);
+		}
 		else
 			current_dir(data);
 
 	}
+	update_pwd(current_pwd ,data);
 	return (0);
 }
 
@@ -136,8 +160,9 @@ int	ft_export(t_list *data, char **s)
 	int i;
 	int j;
 	int	equal;
-	int k = 0;
-	
+	int k;
+
+	k = 0;
 	j = 0;
 	i = 1;
 	if (s[i] == NULL)
@@ -303,30 +328,19 @@ int test_path(t_list *data, char *s)
 				return (0);
 			}
 		}
-		if (!pths)
+		if (pths)
 			free(pths);
 		i ++;
 	}
 	return (1);
 }
 
-int	executor(char **str, t_list *data)
+int	builtin(char **str, t_list *data)
 {
-	if ((strcmp(str[0],"echo") == 0))
-		ft_echo(str);
-	else if ((strcmp(str[0],"pwd") == 0))
-		ft_pwd();
-	else if ((strcmp(str[0],"cd") == 0))
-		ft_cd(str, data);
-	else if ((strcmp(str[0],"env") == 0))
-		ft_env(data);
-	else if ((strcmp(str[0],"export") == 0))
-		ft_export(data, str);
-	else if ((strcmp(str[0],"unset") == 0))
-		ft_unset(data, str);
+	if (!check_pipe (str))
+		cmd (str, data);
 	else
-		cmd_excve(str, data);
-		//printf ("here\n");
+		printf ("pipe\n");
 	return (0);
 }
 
@@ -353,7 +367,6 @@ char	**ft_fill_data(char **env)
 }
 int main (int ac, char **av, char **env)
 {
-
 	char *str;
 	char **word;
 	t_list data;
@@ -362,18 +375,22 @@ int main (int ac, char **av, char **env)
 	(void)av;
 	str = NULL;
 	data.envrnmt = ft_fill_data(env);
-	data.exprt = ft_fill_data(env);
+	data.exprt = ft_fill_data (data.envrnmt);
 	sort_env(&data);
 	current_dir(&data);
+	my_signal();
 	while (1)
 	{
-		//str = get_next_line (0);
 		str = readline(data.directory);
+		//if (str == )
+		//	printf ("ctrl d\n");
 		add_history(str);
 
 		word = ft_split(str, ' ');
 		if (*word != NULL)
-			executor(word , &data);
+			builtin(word , &data);
+		if (str)
+			free (str);
 		//free (data.envrnmt);
 		//free (data.exprt);
 	}

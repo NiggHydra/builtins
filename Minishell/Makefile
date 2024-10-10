@@ -1,9 +1,12 @@
-MN		=	main.c\
+PIPE	=	\
+
+BUILTIN	=	main.c\
 			utils.c
+SIGNAL = signal.c\
 
 
 				
-SRCS = ${MN}
+SRCS = ${BUILTIN} ${SIGNAL}
 
 CC		=	cc
 CFLAGS		=	-Wall -Wextra -Werror -g 

@@ -184,23 +184,7 @@ int	strlen_nvar (char *s)
 	return (i);
 }
 
-//char *name_var(char *s)
-//{
-//	int len;
-//	int	i;
-//	char *cpy;
 
-//	i = 0;
-//	len = strlen_nvar (s);
-//	cpy = malloc((sizeof( char *)) * (len + 1));
-//	if (!cpy)
-//		return (NULL);
-//	while (i < len)
-//	{
-//		strncpy()
-//		i ++;
-//	}
-//}
 int nt_valid_identifier(char *s)
 {
 	ft_putstr_fd("export : `", 1);
@@ -209,12 +193,60 @@ int nt_valid_identifier(char *s)
 	return (0);
 }
 
-//char *concatenation(char *s)
-//{
-//	int	i;
-//	i = 0;
-//	while (s[i] != '\0')
+char 	*get_env(char *s, t_list *data)
+{
+	int i;
+	char *env;
 
+	i = 0;
+	env = NULL;
+	while (data->envrnmt[i] != NULL)
+	{
+		if (ft_strncmp(s, data->envrnmt[i], ft_strlen(s)) == 0)
+		{
+			env = ft_strjoin(s , "=");
+			env = ft_strcmp2 (env, data->envrnmt[i]);
+			printf ("your env >>>>>> %s\n", env);
+			break;
+		}
+		i ++;
+	}
+	if (!env)
+		return (NULL);
+	return (env);
+}
 
-//	return (concatenation);
-//}
+int	check_pipe(char **s)
+{
+	int i;
+
+	i = 0;
+	while (s[i] != NULL)
+	{
+		if (strcmp (s[i], "|") == 0)
+			return (1);
+		i ++;
+	}
+	return (0);
+}
+
+int	cmd(char **str, t_list *data)
+{
+	if ((strcmp(str[0],"echo") == 0))
+		return(ft_echo(str));
+	else if ((strcmp(str[0],"pwd") == 0))
+		return (ft_pwd());
+	else if ((strcmp(str[0],"cd") == 0))
+		return (ft_cd(str, data));
+	else if ((strcmp(str[0],"env") == 0))
+		return (ft_env(data));
+	else if ((strcmp(str[0],"export") == 0))
+		return (ft_export(data, str));
+	else if ((strcmp(str[0],"unset") == 0))
+		return (ft_unset(data, str));
+	else if ((strcmp(str[0], "get_env") == 0))
+		get_env(str[1], data);
+	else
+		return (cmd_excve(str, data));
+	return (0);
+}
